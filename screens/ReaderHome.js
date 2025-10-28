@@ -23,6 +23,7 @@ import {
     where,
     orderBy,
     addDoc,
+    getDoc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -128,20 +129,49 @@ export default function ReaderHome({ navigation }) {
 
     // --- Chấp nhận yêu cầu
     const handleAccept = async (req) => {
-        const ref = doc(db, "formSubmissions", req.id);
-        await updateDoc(ref, { status: "accepted" });
-        await addDoc(collection(db, "notifications", req.userId, "messages"), {
-            senderId: user.uid,
-            senderName: nickname,
-            receiverId: req.userId,
-            message: `✨ Reader ${nickname} đã chấp nhận yêu cầu của bạn.`,
-            read: false,
-            createdAt: new Date(),
-        });
-        Alert.alert("✅ Thành công", "Đã chấp nhận yêu cầu.");
-        setModalVisible(false);
-        setShowRejectInput(false);
-        setRejectReason("");
+        try {
+            const ref = doc(db, "formSubmissions", req.id);
+            await updateDoc(ref, { status: "accepted" });
+
+            // 🔔 Gửi thông báo trong Firestore
+            await addDoc(collection(db, "notifications", req.userId, "messages"), {
+                senderId: user.uid,
+                senderName: nickname,
+                receiverId: req.userId,
+                message: `✨ Reader ${nickname} đã chấp nhận yêu cầu của bạn.`,
+                read: false,
+                createdAt: new Date(),
+            });
+
+            // 🔔 Gửi Push Notification đến User
+            try {
+                const userRef = doc(db, "users", req.userId);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists() && userSnap.data().expoPushToken) {
+                    // Import động để tránh vòng lặp import
+                    import("../sendPushNotification").then(({ sendPushNotification }) => {
+                        sendPushNotification(
+                            userSnap.data().expoPushToken,
+                            "🔮 Reader đã chấp nhận yêu cầu!",
+                            `Reader ${nickname} đã chấp nhận yêu cầu trải bài của bạn.`
+                        );
+                    });
+                } else {
+                    console.log("⚠️ Không tìm thấy expoPushToken của user");
+                }
+            } catch (pushError) {
+                console.log("❌ Lỗi khi gửi push notification:", pushError);
+            }
+
+            Alert.alert("✅ Thành công", "Đã chấp nhận yêu cầu.");
+            setModalVisible(false);
+            setShowRejectInput(false);
+            setRejectReason("");
+        } catch (error) {
+            console.error("❌ Lỗi khi chấp nhận yêu cầu:", error);
+            Alert.alert("Lỗi", "Không thể xử lý yêu cầu. Vui lòng thử lại sau.");
+        }
     };
 
     // --- Từ chối yêu cầu
@@ -150,20 +180,51 @@ export default function ReaderHome({ navigation }) {
             Alert.alert("Lý do từ chối", "Vui lòng nhập lý do từ chối.");
             return;
         }
-        const ref = doc(db, "formSubmissions", req.id);
-        await updateDoc(ref, { status: "rejected", rejectionReason: rejectReason });
-        await addDoc(collection(db, "notifications", req.userId, "messages"), {
-            senderId: user.uid,
-            senderName: nickname,
-            receiverId: req.userId,
-            message: `❌ Reader ${nickname} đã từ chối yêu cầu.\n📋 Lý do: ${rejectReason}`,
-            read: false,
-            createdAt: new Date(),
-        });
-        setRejectReason("");
-        setShowRejectInput(false);
-        setModalVisible(false);
+
+        try {
+            const ref = doc(db, "formSubmissions", req.id);
+            await updateDoc(ref, { status: "rejected", rejectionReason: rejectReason });
+
+            // 🔔 Gửi thông báo trong Firestore
+            await addDoc(collection(db, "notifications", req.userId, "messages"), {
+                senderId: user.uid,
+                senderName: nickname,
+                receiverId: req.userId,
+                message: `❌ Reader ${nickname} đã từ chối yêu cầu.\n📋 Lý do: ${rejectReason}`,
+                read: false,
+                createdAt: new Date(),
+            });
+
+            // 🔔 Gửi Push Notification đến User
+            try {
+                const userRef = doc(db, "users", req.userId);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists() && userSnap.data().expoPushToken) {
+                    import("../sendPushNotification").then(({ sendPushNotification }) => {
+                        sendPushNotification(
+                            userSnap.data().expoPushToken,
+                            "❌ Reader đã từ chối yêu cầu",
+                            `Reader ${nickname} đã từ chối yêu cầu của bạn.\n📋 Lý do: ${rejectReason}`
+                        );
+                    });
+                } else {
+                    console.log("⚠️ Không tìm thấy expoPushToken của user");
+                }
+            } catch (pushError) {
+                console.log("❌ Lỗi khi gửi push notification:", pushError);
+            }
+
+            setRejectReason("");
+            setShowRejectInput(false);
+            setModalVisible(false);
+            Alert.alert("Đã gửi thông báo", "Reader đã từ chối yêu cầu.");
+        } catch (error) {
+            console.error("❌ Lỗi khi từ chối yêu cầu:", error);
+            Alert.alert("Lỗi", "Không thể xử lý yêu cầu. Vui lòng thử lại sau.");
+        }
     };
+
 
     // --- Thẻ trạng thái
     const renderStatusBadge = (status) => {

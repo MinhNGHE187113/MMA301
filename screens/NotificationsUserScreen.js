@@ -54,12 +54,19 @@ export default function NotificationsUserScreen({ navigation }) {
             const data = [];
             let unread = 0;
 
-            for (const doc of snap.docs) {
-                const msg = { id: doc.id, ...doc.data() };
-                // Mark as read if it's a new message
+            for (const docSnap of snap.docs) {
+                const msg = { id: docSnap.id, ...docSnap.data() };
                 if (!msg.read) {
-                    await updateDoc(doc.ref, { read: true });
+                    await updateDoc(docSnap.ref, { read: true });
                     unread++;
+                    // 👇 Khi có thông báo mới, hiển thị Notification cục bộ (nếu app đang mở)
+                    await Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: "🔔 Thông báo mới",
+                            body: msg.message || "Bạn có thông báo mới",
+                        },
+                        trigger: null,
+                    });
                 }
                 data.push(msg);
             }
@@ -68,12 +75,12 @@ export default function NotificationsUserScreen({ navigation }) {
             setUnreadCount(unread);
             setLoading(false);
 
-            // Update badge count in parent if needed
             navigation.setParams({ unreadCount: unread });
         });
 
         return () => unsub();
     }, [userId, navigation]);
+
 
     const renderRequestItem = ({ item }) => {
         const status = getStatusText(item.status, item.rejectionReason);

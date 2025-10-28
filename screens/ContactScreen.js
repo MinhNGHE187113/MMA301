@@ -124,6 +124,7 @@ export default function ContactScreen() {
                 read: false,
                 createdAt: serverTimestamp(),
             });
+
             await updateDoc(notiDoc, { createdAt: serverTimestamp() });
 
             const formRef = collection(db, "formSubmissions");
@@ -143,6 +144,24 @@ export default function ContactScreen() {
                 createdAt: serverTimestamp(),
             });
 
+            // 🔔 Gửi thông báo đến Reader
+            try {
+                const readerDoc = await getDocs(collection(db, "readers"));
+                readerDoc.forEach((r) => {
+                    if (r.id === selectedReader.id && r.data().expoPushToken) {
+                        import("../sendPushNotification").then(({ sendPushNotification }) => {
+                            sendPushNotification(
+                                r.data().expoPushToken,
+                                "🔮 Yêu cầu mới!",
+                                `${form.name} vừa gửi yêu cầu trải bài đến bạn.`
+                            );
+                        });
+                    }
+                });
+            } catch (e) {
+                console.log("⚠️ Không tìm thấy token Reader:", e);
+            }
+
             Alert.alert("✅ Thành công", "Đã gửi yêu cầu đến reader!");
             setModalVisible(false);
             setForm({
@@ -158,6 +177,7 @@ export default function ContactScreen() {
             Alert.alert("Lỗi", "Không thể gửi yêu cầu. Vui lòng thử lại sau.");
         }
     };
+
 
     if (!user) {
         return (
