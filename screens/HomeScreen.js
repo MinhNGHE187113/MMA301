@@ -365,6 +365,30 @@ Nhận lá bài hàng ngày từ vũ trụ`,
           </View>
         </View>
 
+        {/* Nút mở Chatbot Tarot AI - dùng emoji thay icon */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#FFD700',
+            borderRadius: 20,
+            paddingVertical: 10,
+            paddingHorizontal: 22,
+            alignSelf: 'center',
+            marginBottom: 14,
+            marginTop: 2,
+            flexDirection: 'row',
+            alignItems: 'center',
+            shadowColor: '#FFD700',
+            shadowOpacity: 0.25,
+            shadowRadius: 6,
+            elevation: 4,
+          }}
+          onPress={() => navigation.navigate('TarotChat')}
+          activeOpacity={0.85}
+        >
+          <Text style={{ fontSize: 18, marginRight: 7 }}>💬</Text>
+          <Text style={{ color: '#333', fontWeight: 'bold', fontSize: 15 }}>Chat với AI Tarot</Text>
+        </TouchableOpacity>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
