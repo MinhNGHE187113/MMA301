@@ -26,6 +26,7 @@ import RegisterUserScreen from "./screens/RegisterUserScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import TarotResultScreen from "./screens/TarotResultScreen";
 import TarotScreen from "./screens/TarotScreen";
+import TarotChatScreen from "./screens/TarotChatScreen";
 
 // --- Màn hình thông báo
 import NotificationsUserScreen from "./screens/NotificationsUserScreen";
@@ -214,6 +215,8 @@ export default function App() {
 
         {/* Main Tabs */}
         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+        {/* AI Chat Bot */}
+        <Stack.Screen name="TarotChat" component={TarotChatScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
