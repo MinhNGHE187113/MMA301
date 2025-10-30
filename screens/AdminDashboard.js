@@ -1,5 +1,4 @@
-import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     FlatList,
@@ -8,10 +7,10 @@ import {
     TouchableOpacity,
     View,
     ActivityIndicator,
-    ScrollView,
-    TextInput,
     Modal,
+    TextInput,
 } from "react-native";
+import { collection, getDocs, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
 import BackgroundWrapper from "../components/BackgroundWrapper";
@@ -19,11 +18,14 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function AdminDashboard({ navigation }) {
     const [pendingReaders, setPendingReaders] = useState([]);
+    const [feedbacks, setFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState("readers"); // "readers" hoặc "feedbacks"
     const [rejectModal, setRejectModal] = useState(false);
     const [selectedReader, setSelectedReader] = useState(null);
     const [rejectReason, setRejectReason] = useState("");
 
+    // 🔹 Lấy danh sách reader chờ duyệt
     const fetchReaders = async () => {
         try {
             setLoading(true);
@@ -33,12 +35,26 @@ export default function AdminDashboard({ navigation }) {
                 .filter((item) => item.approved === false && !item.rejected);
             setPendingReaders(data);
         } catch (error) {
-            Alert.alert("Lỗi", "Không thể tải danh sách reader chờ duyệt!");
+            Alert.alert("Lỗi", "Không thể tải danh sách reader!");
         } finally {
             setLoading(false);
         }
     };
 
+    // 🔁 Lắng nghe phản hồi người dùng realtime
+    useEffect(() => {
+        const unsub = onSnapshot(collection(db, "feedbacks"), (snap) => {
+            const fbData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            setFeedbacks(fbData);
+        });
+        return unsub;
+    }, []);
+
+    useEffect(() => {
+        fetchReaders();
+    }, []);
+
+    // ✅ Duyệt reader
     const approveReader = async (id) => {
         try {
             await updateDoc(doc(db, "readers", id), {
@@ -53,6 +69,7 @@ export default function AdminDashboard({ navigation }) {
         }
     };
 
+    // ❌ Từ chối reader
     const rejectReader = async () => {
         if (!rejectReason.trim()) {
             Alert.alert("⚠️ Thiếu lý do", "Vui lòng nhập lý do từ chối!");
@@ -67,13 +84,14 @@ export default function AdminDashboard({ navigation }) {
             });
             setRejectModal(false);
             setRejectReason("");
-            Alert.alert("❌ Đã từ chối", "Reader đã bị từ chối đăng ký!");
+            Alert.alert("❌ Đã từ chối", "Reader đã bị từ chối!");
             fetchReaders();
         } catch (error) {
             Alert.alert("Lỗi", "Không thể từ chối reader!");
         }
     };
 
+    // 🚪 Đăng xuất
     const handleLogout = async () => {
         Alert.alert("Đăng xuất", "Bạn có chắc muốn đăng xuất?", [
             { text: "Hủy" },
@@ -88,14 +106,10 @@ export default function AdminDashboard({ navigation }) {
         ]);
     };
 
-    useEffect(() => {
-        fetchReaders();
-    }, []);
-
     return (
         <BackgroundWrapper>
             <View style={styles.overlay}>
-                {/* Header */}
+                {/* 🟣 Header */}
                 <View style={styles.header}>
                     <Text style={styles.title}>👑 Admin Dashboard</Text>
                     <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -103,67 +117,89 @@ export default function AdminDashboard({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.subtitle}>Danh sách Reader chờ duyệt</Text>
+                {/* 🔁 Tabs */}
+                <View style={styles.tabRow}>
+                    <TouchableOpacity
+                        style={[styles.tab, viewMode === "readers" && styles.activeTab]}
+                        onPress={() => setViewMode("readers")}
+                    >
+                        <Text style={styles.tabText}>📋 Reader chờ duyệt</Text>
+                    </TouchableOpacity>
 
-                {loading ? (
-                    <ActivityIndicator size="large" color="#E0AAFF" style={{ marginTop: 40 }} />
-                ) : pendingReaders.length === 0 ? (
-                    <Text style={styles.emptyText}>🎉 Không có reader nào đang chờ duyệt</Text>
+                    <TouchableOpacity
+                        style={[styles.tab, viewMode === "feedbacks" && styles.activeTab]}
+                        onPress={() => setViewMode("feedbacks")}
+                    >
+                        <Text style={styles.tabText}>💬 Phản hồi người dùng</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* 📦 Nội dung hiển thị */}
+                {viewMode === "readers" ? (
+                    loading ? (
+                        <ActivityIndicator size="large" color="#E0AAFF" style={{ marginTop: 40 }} />
+                    ) : pendingReaders.length === 0 ? (
+                        <Text style={styles.emptyText}>🎉 Không có reader nào đang chờ duyệt</Text>
+                    ) : (
+                        <FlatList
+                            data={pendingReaders}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <View style={styles.card}>
+                                    <Text style={styles.name}>
+                                        {item.fullName || "Chưa có tên"}{" "}
+                                        <Text style={styles.nickName}>({item.nickName || "—"})</Text>
+                                    </Text>
+
+                                    <Text style={styles.text}>📧 {item.email}</Text>
+                                    <Text style={styles.text}>📞 {item.phone || "Chưa có"}</Text>
+                                    <Text style={styles.text}>
+                                        🕒 {item.createdAt?.toDate?.().toLocaleString("vi-VN") || ""}
+                                    </Text>
+
+                                    <View style={styles.buttonRow}>
+                                        <TouchableOpacity
+                                            style={styles.approveButton}
+                                            onPress={() => approveReader(item.id)}
+                                        >
+                                            <Text style={styles.buttonText}>✅ Duyệt</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.rejectButton}
+                                            onPress={() => {
+                                                setSelectedReader(item);
+                                                setRejectModal(true);
+                                            }}
+                                        >
+                                            <Text style={styles.buttonText}>❌ Từ chối</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                        />
+                    )
                 ) : (
                     <FlatList
-                        data={pendingReaders}
+                        data={feedbacks}
                         keyExtractor={(item) => item.id}
-                        contentContainerStyle={{ paddingBottom: 100 }}
                         renderItem={({ item }) => (
                             <View style={styles.card}>
-                                <Text style={styles.name}>
-                                    {item.fullName || "Chưa có tên"}{" "}
-                                    <Text style={styles.nickName}>({item.nickName || "—"})</Text>
+                                <Text style={styles.name}>📩 {item.email || "Ẩn danh"}</Text>
+                                <Text style={styles.text}>
+                                    {item.message ? item.message : "(Không có nội dung)"}
                                 </Text>
-
-                                <View style={styles.infoBlock}>
-                                    <Text style={styles.text}>📧 Email: {item.email}</Text>
-                                    <Text style={styles.text}>📞 SĐT: {item.phone || "Chưa có"}</Text>
-                                    <Text style={styles.text}>
-                                        💼 Kinh nghiệm: {item.experience || "Chưa cập nhật"}
-                                    </Text>
-                                    <Text style={styles.text}>
-                                        🕒 Ngày đăng ký:{" "}
-                                        {item.createdAt?.toDate
-                                            ? item.createdAt.toDate().toLocaleString("vi-VN")
-                                            : "Không rõ"}
-                                    </Text>
-                                </View>
-
-                                <Text style={styles.bioLabel}>📝 Giới thiệu:</Text>
-                                <ScrollView style={styles.bioBox}>
-                                    <Text style={styles.bioText}>{item.bio || "Chưa có giới thiệu"}</Text>
-                                </ScrollView>
-
-                                <View style={styles.buttonRow}>
-                                    <TouchableOpacity
-                                        style={styles.approveButton}
-                                        onPress={() => approveReader(item.id)}
-                                    >
-                                        <Text style={styles.buttonText}>✅ Duyệt</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={styles.rejectButton}
-                                        onPress={() => {
-                                            setSelectedReader(item);
-                                            setRejectModal(true);
-                                        }}
-                                    >
-                                        <Text style={styles.buttonText}>❌ Từ chối</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                <Text style={styles.textSmall}>
+                                    🕒{" "}
+                                    {item.createdAt?.toDate?.().toLocaleString("vi-VN") ||
+                                        "Không rõ thời gian"}
+                                </Text>
                             </View>
                         )}
                     />
                 )}
 
-                {/* Modal nhập lý do từ chối */}
+                {/* 🟥 Modal từ chối */}
                 <Modal visible={rejectModal} transparent animationType="fade">
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalBox}>
@@ -205,28 +241,52 @@ export default function AdminDashboard({ navigation }) {
 
 const styles = StyleSheet.create({
     overlay: { flex: 1, paddingHorizontal: 20, paddingTop: 50 },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     title: { fontSize: 24, color: "#E0AAFF", fontWeight: "bold" },
-    logoutBtn: { backgroundColor: "rgba(157, 78, 221, 0.9)", padding: 8, borderRadius: 10, borderWidth: 1, borderColor: "#C77DFF" },
-    subtitle: { fontSize: 18, color: "#fff", marginBottom: 15, textAlign: "center" },
-    emptyText: { color: "#ccc", fontSize: 16, textAlign: "center", marginTop: 60 },
-    card: { backgroundColor: "#2b0052", borderRadius: 16, padding: 18, marginBottom: 15, borderWidth: 1, borderColor: "#6A1FBF" },
-    name: { fontSize: 18, fontWeight: "700", color: "#FFD6FF" },
-    nickName: { fontSize: 15, fontWeight: "500", color: "#C77DFF" },
-    infoBlock: { marginTop: 6 },
+    logoutBtn: { backgroundColor: "rgba(157,78,221,0.9)", padding: 8, borderRadius: 10 },
+    tabRow: { flexDirection: "row", justifyContent: "space-around", marginVertical: 15 },
+    tab: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "#C77DFF" },
+    activeTab: { backgroundColor: "#7B2CBF" },
+    tabText: { color: "#fff", fontWeight: "600" },
+    emptyText: { color: "#ccc", textAlign: "center", marginTop: 40 },
+    card: { backgroundColor: "#2b0052", borderRadius: 16, padding: 15, marginBottom: 10 },
+    name: { fontSize: 18, color: "#FFD6FF", fontWeight: "700" },
+    nickName: { color: "#C77DFF" },
     text: { color: "#fff", fontSize: 15, marginBottom: 3 },
-    bioLabel: { marginTop: 10, color: "#E0AAFF", fontWeight: "600" },
-    bioBox: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 10, padding: 10, marginTop: 5, maxHeight: 100 },
-    bioText: { color: "#fff", fontSize: 14 },
-    buttonRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 15 },
-    approveButton: { backgroundColor: "#7B2CBF", flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1, borderColor: "#C77DFF", marginRight: 10 },
-    rejectButton: { backgroundColor: "#C21807", flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1, borderColor: "#FF6B6B" },
-    buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 },
-    modalBox: { backgroundColor: "#2b0052", width: "100%", borderRadius: 16, padding: 20, borderWidth: 1, borderColor: "#C77DFF" },
-    modalTitle: { fontSize: 18, color: "#FFD6FF", fontWeight: "700", marginBottom: 10 },
-    input: { backgroundColor: "rgba(255,255,255,0.15)", color: "#fff", borderRadius: 10, padding: 10, height: 100, textAlignVertical: "top" },
-    modalButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 15 },
+    textSmall: { color: "#ccc", fontSize: 13, marginTop: 5 },
+    buttonRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
+    approveButton: {
+        flex: 1,
+        backgroundColor: "#7B2CBF",
+        padding: 10,
+        borderRadius: 10,
+        alignItems: "center",
+        marginRight: 10,
+    },
+    rejectButton: {
+        flex: 1,
+        backgroundColor: "#C21807",
+        padding: 10,
+        borderRadius: 10,
+        alignItems: "center",
+    },
+    buttonText: { color: "#fff", fontWeight: "600" },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.6)",
+    },
+    modalBox: { backgroundColor: "#2b0052", padding: 20, borderRadius: 16, width: "90%" },
+    modalTitle: { color: "#FFD6FF", fontSize: 18, fontWeight: "700", marginBottom: 10 },
+    input: {
+        backgroundColor: "rgba(255,255,255,0.15)",
+        color: "#fff",
+        borderRadius: 10,
+        padding: 10,
+        height: 100,
+    },
+    modalButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
     modalBtn: { flex: 1, padding: 12, borderRadius: 10, alignItems: "center", marginHorizontal: 5 },
     modalBtnText: { color: "#fff", fontWeight: "600" },
 });

@@ -13,8 +13,8 @@ export async function askAI(prompt, opts = {}) {
     const systemPrompt = `Bạn là AI Tarot, chỉ trả lời các câu hỏi về tarot, năng lượng sống, lời khuyên, động viên. Không nên trả lời các chủ đề ngoài tarot à hạn chế trả lời dài nếu người dùng không yêu cầu chi tiết đầy đủ nhé  . Dữ liệu tarot chi tiết như sau (dùng để tra cứu, không liệt kê lại toàn bộ nếu không cần và nếu dài quá tìm mãi không được thì bạn bỏ luôn bạn tìm bằng thông tin của bạn):\n${JSON.stringify(tarotData).slice(0, 12000)}...`;
     const body = {
       contents: [
-        { parts: [ { text: systemPrompt } ] },
-        { parts: [ { text: opts.prompt || prompt } ] }
+        { parts: [{ text: systemPrompt }] },
+        { parts: [{ text: opts.prompt || prompt }] }
       ]
     };
     const res = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {

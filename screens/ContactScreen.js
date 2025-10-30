@@ -79,9 +79,10 @@ export default function ContactScreen() {
             querySnapshot.forEach((docSnap) => {
                 if (docSnap.exists()) {
                     const info = docSnap.data();
+                    const displayName = info.nickName ? `Reader ${info.nickName}` : "Reader Ẩn danh";
                     data.push({
                         id: docSnap.id,
-                        nickName: info.nickName || "Ẩn danh",
+                        nickName: displayName,
                         status: info.status || "bận",
                         isAvailable: info.isAvailable || false,
                         approved: info.approved || false,
@@ -98,6 +99,7 @@ export default function ContactScreen() {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchAllReaders();

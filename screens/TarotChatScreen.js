@@ -20,7 +20,7 @@ export default function TarotChatScreen({ navigation }) {
         if (saved) {
           setMessages(JSON.parse(saved));
         }
-      } catch {}
+      } catch { }
     })();
   }, []);
   // Save history to AsyncStorage on change
@@ -41,7 +41,7 @@ export default function TarotChatScreen({ navigation }) {
       const aiReply = await askAI(input);
       setMessages(prev => [...prev, { role: "bot", text: aiReply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: "bot", text: "(AI lỗi hoặc không trả lời được, thử lại sau!)" }]);
+      setMessages(prev => [...prev, { role: "bot", text: err.message || "(AI lỗi hoặc không trả lời được, thử lại sau!)" }]);
     }
     setLoading(false);
   };
@@ -52,7 +52,8 @@ export default function TarotChatScreen({ navigation }) {
       'Bạn có chắc muốn xóa toàn bộ cuộc hội thoại?',
       [
         { text: 'Hủy', style: 'cancel' },
-        { text: 'Xóa', style: 'destructive', onPress: async () => {
+        {
+          text: 'Xóa', style: 'destructive', onPress: async () => {
             await AsyncStorage.removeItem('tarot_chat_history');
             setMessages([{ role: "bot", text: "Xin chào! Tôi là AI Tarot, bạn muốn hỏi gì về các lá bài hoặc ý nghĩa tarot?" }]);
           }
@@ -77,7 +78,7 @@ export default function TarotChatScreen({ navigation }) {
               <Text style={styles.headerTitle}>Tarot Chatbot</Text>
             </View>
             <TouchableOpacity onPress={handleClearHistory} style={styles.clearBtn}>
-              <Text style={styles.clearText}>🗑 Xóa</Text>
+              <Text style={styles.clearText}>Xóa lịch sử chat</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -109,7 +110,7 @@ export default function TarotChatScreen({ navigation }) {
                 placeholderTextColor="#ccc"
               />
               <TouchableOpacity onPress={handleSend} style={styles.sendBtn} disabled={loading}>
-                <Text style={styles.sendText}>Gửi</Text>
+                <Text style={styles.sendText}>▶</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -122,27 +123,32 @@ export default function TarotChatScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#10002b",
+    backgroundColor: "#0c001a", // tím đen sâu
   },
   headerSafeArea: {
-    backgroundColor: "#10002b",
+    backgroundColor: "#0c001a",
   },
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  paddingTop: Platform.OS === 'ios' ? 40 : 4,
-    paddingBottom: 10,
-    paddingHorizontal: 4,
-    backgroundColor: '#10002b',
-    zIndex: 10,
+    paddingTop: Platform.OS === 'ios' ? 40 : 8,
+    paddingBottom: 14,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(20,0,40,0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   backBtn: {
-    paddingVertical: 8,
-    paddingRight: 12,
-    borderRadius: 20,
-    paddingLeft: 2,
-    backgroundColor: 'rgba(36,0,70,0.7)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 30,
+    backgroundColor: 'rgba(123,44,191,0.3)',
     marginRight: 8,
   },
   backIcon: {
@@ -151,32 +157,95 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFD700',
+    letterSpacing: 0.6,
+    textShadowColor: 'rgba(255,215,0,0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
   },
   clearBtn: {
-    padding: 8,
-    borderRadius: 16,
-    backgroundColor: 'rgba(36,0,70,0.7)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(123,44,191,0.3)',
   },
   clearText: {
     color: '#FFD700',
     fontWeight: 'bold',
     fontSize: 15,
   },
-  container: { flex: 1, backgroundColor: "#10002b", padding: 16, paddingBottom: 0 },
-  messages: { flex: 1 },
-  bubble: { padding: 12, borderRadius: 12, marginVertical: 4, maxWidth: "85%" },
-  user: { alignSelf: "flex-end", backgroundColor: "#7b2cbf" },
-  bot: { alignSelf: "flex-start", backgroundColor: "#240046" },
-  text: { color: "#fff", lineHeight: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#0c001a",
+    paddingHorizontal: 12,
+    paddingBottom: 0,
+  },
+  messages: {
+    flex: 1,
+  },
+  bubble: {
+    padding: 14,
+    borderRadius: 16,
+    marginVertical: 6,
+    maxWidth: "85%",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  user: {
+    alignSelf: "flex-end",
+    backgroundColor: "linear-gradient(90deg, #7b2cbf, #9d4edd)",
+    backgroundColor: "#7b2cbf",
+    borderTopRightRadius: 4,
+  },
+  bot: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderTopLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  text: {
+    color: "#fff",
+    lineHeight: 20,
+    fontSize: 15,
+  },
   inputBarWrapper: {
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     backgroundColor: 'transparent',
   },
-  inputBar: { flexDirection: "row", marginTop: 8, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 12 },
-  input: { flex: 1, padding: 12, color: "#fff" },
-  sendBtn: { paddingHorizontal: 16, justifyContent: "center" },
-  sendText: { color: "#FFD700", fontWeight: "600" },
+  inputBar: {
+    flexDirection: "row",
+    marginTop: 8,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    color: "#fff",
+    fontSize: 15,
+  },
+  sendBtn: {
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    backgroundColor: "rgba(255,215,0,0.15)",
+    borderRadius: 16,
+    marginLeft: 6,
+  },
+  sendText: {
+    color: "#FFD700",
+    fontWeight: "600",
+    fontSize: 16,
+  },
 });
+
