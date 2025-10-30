@@ -1,13 +1,13 @@
 "use client"
 
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, getDoc, collection, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BackgroundWrapper from "../components/BackgroundWrapper";
 import { tarotData as allCards } from '../data/tarotData';
 import { auth, db } from "../firebaseConfig";
-import { Ionicons } from "@expo/vector-icons";
 
 
 const { width } = Dimensions.get("window")
@@ -491,8 +491,9 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: "absolute",
-    right: 10,
-    top: 0,
+    right: 0,
+    // left: 1,
+    top: 5,
   },
   notificationBadge: {
     position: "absolute",
@@ -504,6 +505,7 @@ const styles = StyleSheet.create({
     height: 18,
     justifyContent: "center",
     alignItems: "center",
+
   },
   notificationBadgeText: {
     color: "white",
@@ -517,6 +519,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     alignItems: "center",
     backgroundColor: 'transparent',
+    marginLeft: 30,
   },
   greetingContainer: {
     flexDirection: "row",

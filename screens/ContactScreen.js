@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    FlatList,
-    Modal,
-    TextInput,
-    Alert,
-    StyleSheet,
-    ActivityIndicator,
-} from "react-native";
-import { auth, db } from "../firebaseConfig";
-import {
-    collection,
-    addDoc,
-    updateDoc,
-    serverTimestamp,
-    getDocs,
-} from "firebase/firestore";
-import BackgroundWrapper from "../components/BackgroundWrapper";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+    addDoc,
+    collection,
+    getDocs,
+    serverTimestamp,
+    updateDoc,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import BackgroundWrapper from "../components/BackgroundWrapper";
+import { auth, db } from "../firebaseConfig";
 
 export default function ContactScreen() {
     const user = auth.currentUser;

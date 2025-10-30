@@ -1,25 +1,23 @@
-import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    FlatList,
-    StyleSheet,
-    ActivityIndicator,
-    TouchableOpacity,
-    Alert
-} from "react-native";
-import { db, auth } from "../firebaseConfig";
-import {
-    collection,
-    query,
-    orderBy,
-    onSnapshot,
-    updateDoc,
-    doc,
-    getDoc
-} from "firebase/firestore";
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import {
+    collection,
+    onSnapshot,
+    orderBy,
+    query,
+    updateDoc
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
+import { auth, db } from "../firebaseConfig";
 
 const getStatusText = (status, rejectionReason) => {
     switch (status) {

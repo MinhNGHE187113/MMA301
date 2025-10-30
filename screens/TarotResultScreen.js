@@ -8,11 +8,11 @@ import {
 } from 'react-native';
 import BackgroundWrapper from '../components/BackgroundWrapper';
 
-
 const lifePositions = ['Quá khứ', 'Hiện tại', 'Tương lai'];
 const lifeMeaningKeys = ['past', 'present', 'future'];
 
 export default function TarotResultScreen({ route, navigation }) {
+  // 💡 Sửa: Đổi tên 'entry' thành 'historyEntry' cho rõ nghĩa
   const { entry: historyEntry, topic, selectedCards } = route.params;
 
   let entry;
@@ -20,7 +20,7 @@ export default function TarotResultScreen({ route, navigation }) {
   if (historyEntry) {
     entry = historyEntry;
   } else if (topic && selectedCards && topic === 'Cuộc sống') {
-
+    // Logic dự phòng này có thể không bao giờ chạy nếu TarotScreen luôn gửi 'entry'
     const processedCards = selectedCards.map((card, index) => {
       const position = lifePositions[index];
       const meaningKey = lifeMeaningKeys[index];
@@ -41,10 +41,14 @@ export default function TarotResultScreen({ route, navigation }) {
     entry = {
       topic: topic,
       cards: processedCards,
-      date: new Date().toLocaleDateString('vi-VN')
+      date: new Date().toLocaleDateString('vi-VN'),
+      // 💡 Lưu ý: 'mode' có thể bị thiếu ở đây nếu logic này được sử dụng
+      // Tuy nhiên, TarotScreen đang gửi 'entry' (historyEntry) đã bao gồm 'mode'
+      mode: selectedCards.length === 1 ? 'one' : 'three', // Suy đoán mode
     };
 
   } else {
+    // Màn hình lỗi
     return (
       <BackgroundWrapper>
         <View style={[styles.container, { justifyContent: 'center' }]}>
@@ -54,7 +58,6 @@ export default function TarotResultScreen({ route, navigation }) {
           </Text>
           <TouchableOpacity
             style={[styles.backBtn, { width: '100%', marginTop: 20 }]}
-            // --- SỬA LỖI TẠI ĐÂY ---
             onPress={() => navigation.navigate('Home_Main')}>
             <Text style={styles.backText}>🏠 Về trang chủ</Text>
           </TouchableOpacity>
@@ -63,6 +66,7 @@ export default function TarotResultScreen({ route, navigation }) {
     );
   }
 
+  // Màn hình kết quả chính
   return (
     <BackgroundWrapper>
       <View style={styles.container}>
@@ -114,14 +118,18 @@ export default function TarotResultScreen({ route, navigation }) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.backBtn}
-            // --- SỬA LỖI TẠI ĐÂY ---
             onPress={() => navigation.navigate('Home_Main')}>
             <Text style={styles.backText}>🏠 Về trang chủ</Text>
           </TouchableOpacity>
 
+          {/* === 💡 NÚT ĐÃ ĐƯỢC SỬA === */}
           <TouchableOpacity
             style={styles.retryBtn}
-            onPress={() => navigation.goBack()}>
+            onPress={() => navigation.replace('Tarot', {
+              topic: entry.topic,
+              mode: entry.mode
+            })}
+          >
             <Text style={styles.retryText}>🔄 Rút lại</Text>
           </TouchableOpacity>
         </View>
@@ -130,6 +138,7 @@ export default function TarotResultScreen({ route, navigation }) {
   );
 }
 
+// ... (styles giữ nguyên)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
