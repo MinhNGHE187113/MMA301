@@ -146,29 +146,30 @@ export default function TarotScreen({ route }) {
   // 🎴 Bắt đầu chia bài ngay khi dealer card xuất hiện
   const handleDealingComplete = () => {
     setIsDealingCards(true);
-    // Bắt đầu chia bài ngay lập tức
-    animateDeckEntry(deck.length);
+    // Đợi FlatList render xong trước khi bắt đầu animation
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        animateDeckEntry(deck.length);
+      }, 100);
+    });
   };
 
-  // Animation chia bài từ trái sang phải (bắt đầu từ lá thứ 2, vì lá đầu là dealer)
+  // Animation chia bài mượt mà - Hiện tất cả cùng lúc với wave effect
   const animateDeckEntry = (totalCards) => {
+    // Set tất cả opacity về 1 ngay lập tức
+    deckCardEntryAnims.slice(1).forEach(anim => {
+      anim.opacity.setValue(1);
+    });
+
+    // Chỉ animate translateX với wave effect mượt mà
     const animations = deckCardEntryAnims.slice(1).map((anim, i) => {
-      const actualIndex = i + 1;
-      return Animated.parallel([
-        Animated.timing(anim.opacity, {
-          toValue: 1,
-          duration: 100,
-          delay: actualIndex * 20, // Nhanh hơn để chia hết 78 lá
-          useNativeDriver: true,
-        }),
-        Animated.timing(anim.translateX, {
-          toValue: 0,
-          duration: 150,
-          easing: Easing.out(Easing.quad),
-          delay: actualIndex * 20,
-          useNativeDriver: true,
-        }),
-      ]);
+      return Animated.timing(anim.translateX, {
+        toValue: 0,
+        duration: 400,
+        delay: i * 15, // Wave effect rất nhẹ
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      });
     });
 
     Animated.parallel(animations).start(() => {
@@ -429,9 +430,11 @@ export default function TarotScreen({ route }) {
                   offset: CARD_OVERLAP * index,
                   index,
                 })}
-                initialNumToRender={15}
-                windowSize={20}
+                initialNumToRender={20}
+                windowSize={15}
                 maxToRenderPerBatch={10}
+                removeClippedSubviews={Platform.OS === 'android'}
+                updateCellsBatchingPeriod={50}
               />
             )}
           </View>
@@ -461,8 +464,8 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,
-    width: undefined,
-    height: undefined,
+    width: '100%',
+    height: '100%',
     zIndex: 0,
   },
   container: {
@@ -581,7 +584,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingRight: 100,
     alignItems: 'center',
-    paddingLeft: 90,
+    paddingLeft: 85,
   },
   deckCardContainer: {
     width: CARD_WIDTH,
