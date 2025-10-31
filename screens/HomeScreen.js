@@ -1,16 +1,18 @@
-"use client";
+"use client"
 
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, getDoc, collection, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BackgroundWrapper from "../components/BackgroundWrapper";
+import FloatingChatButton from "../components/FloatingChatButton";
 import { tarotData as allCards } from '../data/tarotData';
 import { auth, db } from "../firebaseConfig";
-import { Ionicons } from "@expo/vector-icons";
-import FloatingChatButton from "../components/FloatingChatButton"; // ✅ nút nổi AI
+
 
 const { width } = Dimensions.get("window")
+
 
 const shuffleArray = (array) => {
   let currentIndex = array.length, randomIndex;
@@ -27,6 +29,7 @@ const getRandomCards = (deck, num) => {
   const shuffledDeck = shuffleArray([...deck]);
   return shuffledDeck.slice(0, num);
 }
+
 
 export default function HomeScreen({ route, navigation }) {
   const [userName, setUserName] = useState("Đang tải...");
@@ -56,6 +59,7 @@ export default function HomeScreen({ route, navigation }) {
   });
 
   const [userEmail, setUserEmail] = useState(null);
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -162,16 +166,25 @@ export default function HomeScreen({ route, navigation }) {
 
   useEffect(() => {
     const currentUser = auth.currentUser;
+
+    // Nếu chưa có user (chưa đăng nhập) thì không cần lắng nghe thông báo
     if (!currentUser?.email) return;
+
     const userEmail = currentUser.email;
+
+    // 🔥 Lắng nghe thông báo trong Firestore
+    // Giả sử notifications/{userEmail}/messages/{notificationId}
     const q = collection(db, "notifications", userEmail, "messages");
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const unread = snapshot.docs.filter((doc) => doc.data().read === false);
       setUnreadCount(unread.length);
     });
+
+    // Dọn dẹp listener khi component unmount
     return () => unsubscribe();
   }, []);
+
 
   const cards = [
     {
@@ -207,6 +220,7 @@ Nhận lá bài hàng ngày từ vũ trụ`,
     },
   ]
 
+  // 🔥 DANH SÁCH CÁC APP QUẢNG CÁO
   const sponsoredApps = [
     {
       id: 1,
@@ -254,7 +268,10 @@ Nhận lá bài hàng ngày từ vũ trụ`,
         style={[
           isHorizontal ? styles.animatedCardHorizontal : styles.animatedCard,
           isSpecial && styles.animatedCardSpecial,
-          { transform: [{ scale }], opacity },
+          {
+            transform: [{ scale }],
+            opacity,
+          },
         ]}
       >
         <TouchableOpacity
@@ -287,8 +304,10 @@ Nhận lá bài hàng ngày từ vũ trụ`,
     )
   }
 
+  // 🔥 RENDER CARD QUẢNG CÁO
   const renderSponsoredApp = (app) => {
     const appUrl = Platform.OS === 'ios' ? app.iosUrl : app.androidUrl;
+
     return (
       <TouchableOpacity
         key={app.id}
@@ -297,7 +316,10 @@ Nhận lá bài hàng ngày từ vũ trụ`,
         activeOpacity={0.8}
       >
         <View style={styles.sponsoredImageContainer}>
-          <Image source={app.imageSource} style={styles.sponsoredImage} />
+          <Image
+            source={app.imageSource}
+            style={styles.sponsoredImage}
+          />
           <View style={styles.adBadgeOnImage}>
             <Text style={styles.adBadgeOnImageText}>Ad</Text>
           </View>
@@ -326,6 +348,7 @@ Nhận lá bài hàng ngày từ vũ trụ`,
               <Text style={styles.mysticalIcon}>🔮</Text>
             </View>
 
+            {/* 🔔 BIỂU TƯỢNG THÔNG BÁO */}
             <TouchableOpacity
               style={styles.notificationButton}
               onPress={() => navigation.navigate("NotificationsUser")}
@@ -342,15 +365,19 @@ Nhận lá bài hàng ngày từ vũ trụ`,
           </View>
         </View>
 
+        {/* Nút mở Chatbot Tarot AI - dùng emoji thay icon */}
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Daily Card */}
           <View style={styles.featuredContainer}>
             {renderCard(dailyCard, false, true)}
           </View>
 
+          {/* 3 lá bài lật */}
           <View style={styles.surpriseContainer}>
             <Text style={styles.flipTitle}>Đọc bài bất ngờ 3 lá</Text>
             <Text style={styles.flipSubtitle}>Quá khứ - Hiện tại - Tương lai</Text>
@@ -361,11 +388,17 @@ Nhận lá bài hàng ngày từ vũ trụ`,
                 return (
                   <TouchableOpacity key={index} activeOpacity={0.9} onPress={() => handleFlip(index)}>
                     <Animated.View style={[styles.flipCard, { transform: [{ rotateY: front }] }]}>
-                      <Image source={require('../assets/Back2.jpg')} style={styles.flipCardImage} />
+                      <Image
+                        source={require('../assets/Back2.jpg')}
+                        style={styles.flipCardImage}
+                      />
                     </Animated.View>
 
                     <Animated.View style={[styles.flipCard, styles.flipCardFace, { transform: [{ rotateY: back }] }]}>
-                      <Image source={card.image} style={styles.flipCardImage} />
+                      <Image
+                        source={card.image}
+                        style={styles.flipCardImage}
+                      />
                     </Animated.View>
                   </TouchableOpacity>
                 );
@@ -381,24 +414,12 @@ Nhận lá bài hàng ngày từ vũ trụ`,
             )}
           </View>
 
-
-          <View style={{
-            position: "absolute",
-            top: "45%",
-            left: "45%",
-            zIndex: 9999,
-          }}>
-            <FloatingChatButton onPress={() => navigation.navigate("TarotChat")} />
-          </View>
-
-
-
-
-
+          {/* Section title */}
           <View style={styles.sectionTitleContainer}>
             <Text style={styles.sectionTitle}>Khám phá các chủ đề khác</Text>
           </View>
 
+          {/* Other cards - horizontal scroll */}
           <View style={styles.horizontalSection}>
             <ScrollView
               horizontal
@@ -410,6 +431,7 @@ Nhận lá bài hàng ngày từ vũ trụ`,
             </ScrollView>
           </View>
 
+          {/* 🔥 SPONSORED APPS SECTION */}
           <View style={styles.sponsoredSection}>
             <View style={styles.sponsoredHeader}>
               <Text style={styles.sponsoredTitle}>Các ứng dụng đề xuất</Text>
@@ -428,8 +450,6 @@ Nhận lá bài hàng ngày từ vũ trụ`,
           <View style={styles.bottomPadding} />
         </ScrollView>
       </View>
-
-
     </BackgroundWrapper>
   )
 }
@@ -449,8 +469,9 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: "absolute",
-    right: 10,
-    top: 0,
+    right: -10,
+    // left: 1,
+    top: 5,
   },
   notificationBadge: {
     position: "absolute",
@@ -462,6 +483,7 @@ const styles = StyleSheet.create({
     height: 18,
     justifyContent: "center",
     alignItems: "center",
+
   },
   notificationBadgeText: {
     color: "white",
@@ -475,6 +497,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     alignItems: "center",
     backgroundColor: 'transparent',
+    marginLeft: 30,
   },
   greetingContainer: {
     flexDirection: "row",
