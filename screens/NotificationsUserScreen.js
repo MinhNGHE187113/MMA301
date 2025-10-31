@@ -195,17 +195,23 @@ export default function NotificationsUserScreen({ navigation }) {
 
     return (
         <BackgroundWrapper>
-            <Text> </Text>
-            <Text> </Text>
-            <View style={{ height: 8 }} />
+            <View>
+                <Text> </Text>
+                <Text> </Text>
+                <View style={{ height: 8 }} />
 
-            <View style={styles.header}>
-                <Text style={styles.title}>🔔 Thông báo</Text>
-                {unreadCount > 0 && (
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{unreadCount}</Text>
-                    </View>
-                )}
+                <View style={styles.header}>
+                    <Text style={styles.title}>🔔 Thông báo</Text>
+                </View>
+            </View>
+            <View>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("HomeScreen")}
+                    style={styles.backIcon}
+                >
+                    <Text style={styles.backArrow}>←</Text>
+                </TouchableOpacity>
+
             </View>
 
             {requests.length === 0 ? (
@@ -360,4 +366,20 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    backIcon: {
+        position: "absolute",
+        top: 10,
+        left: 10,
+        zIndex: 100,
+        backgroundColor: "rgba(255,255,255,0.15)",
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    backArrow: {
+        fontSize: 22,
+        color: "#fff",
+        fontWeight: "600",
+    },
+
 });

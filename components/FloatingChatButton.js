@@ -91,8 +91,8 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: "transparent",
-        width: 70,
-        height: 70,
+        width: 80,
+        height: 80,
         borderRadius: 35,
         justifyContent: "center",
         alignItems: "center",
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
         elevation: 6,
     },
     image: {
-        width: 80,
-        height: 80,
+        width: 90,
+        height: 90,
     },
 });

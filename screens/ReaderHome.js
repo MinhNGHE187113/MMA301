@@ -138,7 +138,7 @@ export default function ReaderHome({ navigation }) {
                 senderId: user.uid,
                 senderName: nickname,
                 receiverId: req.userId,
-                message: `✨ Reader ${nickname} đã chấp nhận yêu cầu của bạn.`,
+                message: `✨ Reader ${nickname} đã chấp nhận yêu cầu của bạn. Hãy chú ý phương thức liên lạc bạn đã gửi, Reader sẽ liên hệ với bạn ngay.`,
                 read: false,
                 createdAt: new Date(),
             });
@@ -149,14 +149,11 @@ export default function ReaderHome({ navigation }) {
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists() && userSnap.data().expoPushToken) {
-                    // Import động để tránh vòng lặp import
-                    import("../sendPushNotification").then(({ sendPushNotification }) => {
-                        sendPushNotification(
-                            userSnap.data().expoPushToken,
-                            "🔮 Reader đã chấp nhận yêu cầu!",
-                            `Reader ${nickname} đã chấp nhận yêu cầu trải bài của bạn.`
-                        );
-                    });
+                    sendPushNotification(
+                        userSnap.data().expoPushToken,
+                        "🔮 Reader đã chấp nhận yêu cầu!",
+                        "Bạn có thể xem chi tiết yêu cầu tại mục Reader."
+                    );
                 } else {
                     console.log("⚠️ Không tìm thấy expoPushToken của user");
                 }
@@ -254,7 +251,7 @@ export default function ReaderHome({ navigation }) {
                 setModalVisible(true);
             }}
         >
-            <Text style={styles.topic}>🧍‍♀️ {item.userName || "Người dùng ẩn danh"}</Text>
+            <Text style={styles.topic}>Tên người yêu cầu: {item.userName || "Người dùng ẩn danh"}</Text>
             <Text style={styles.subText}>🎂 {item.birthDateStr || "Không rõ ngày sinh"}</Text>
             <Text style={styles.subText}>🕐 {item.birthTime || "Không rõ giờ sinh"}</Text>
             <Text style={styles.subText}>💬 {item.question || "Không có câu hỏi"}</Text>
@@ -308,7 +305,7 @@ export default function ReaderHome({ navigation }) {
                                 />
                             </View>
 
-                            <View style={styles.statusRow}>
+                            <View style={styles.statusRow1}>
                                 <Text style={styles.statusLabel}>Danh sách yêu cầu trải bài:</Text>
                             </View>
 
@@ -402,8 +399,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderBottomWidth: 1,
         borderColor: "rgba(164,138,255,0.6)",
-        borderRadius: 12,
-        margin: 10,
+        // borderRadius: 12,
+        // margin: 10,
+        width: "100%",
     },
     title: { fontSize: 18, color: "#fff", fontWeight: "bold" },
     subTitle: { color: "#e0e0ff", fontSize: 13, marginTop: 2 },
@@ -417,17 +415,30 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 6,
     },
+
+    statusRow1: {
+        flexDirection: "row",
+        justifyContent: "center",
+        marginHorizontal: 16,
+        alignItems: "center",
+        backgroundColor: "rgba(42,36,64,0.6)",
+        padding: 12,
+        borderRadius: 10,
+        marginVertical: 6,
+
+    },
     statusLabel: { fontSize: 16, color: "#fff" },
     card: {
         backgroundColor: "rgba(42, 36, 64, 0.65)",
-        marginHorizontal: 15,
+        marginHorizontal: 0,
         marginVertical: 8,
         padding: 16,
         borderRadius: 14,
         borderWidth: 1,
         borderColor: "rgba(79,63,138,0.6)",
+        width: "100%"
     },
-    topic: { fontSize: 17, fontWeight: "bold", color: "#fff" },
+    topic: { fontSize: 17, fontWeight: "bold", color: "#cfb807ff" },
     subText: { color: "#d6d2f8", marginTop: 4 },
     badge: {
         alignSelf: "flex-start",
