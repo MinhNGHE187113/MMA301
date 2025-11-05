@@ -1,35 +1,37 @@
 // screens/ReaderHome.js
-import React, { useEffect, useState, useRef } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    ActivityIndicator,
-    TouchableOpacity,
-    Alert,
-    Modal,
-    Switch,
-    TextInput,
-    SafeAreaView,
-} from "react-native";
-import { auth, db } from "../firebaseConfig";
-import {
-    doc,
-    onSnapshot,
-    updateDoc,
-    collection,
-    query,
-    where,
-    orderBy,
-    addDoc,
-    getDoc,
-} from "firebase/firestore";
-import { signOut } from "firebase/auth";
-import Icon from "react-native-vector-icons/Ionicons";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { signOut } from "firebase/auth";
+import {
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    onSnapshot,
+    orderBy,
+    query,
+    updateDoc,
+    where,
+} from "firebase/firestore";
+import { useEffect, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    SafeAreaView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 import BackgroundWrapper from "../components/BackgroundWrapper";
+import { auth, db } from "../firebaseConfig";
+import { sendPushNotification } from "../sendPushNotification";
+
 
 export default function ReaderHome({ navigation }) {
     const [requests, setRequests] = useState([]);
@@ -85,7 +87,6 @@ export default function ReaderHome({ navigation }) {
             setRequests(list);
             setLoading(false);
         });
-
         return () => {
             unsubReader();
             unsubSubmissions();
@@ -198,14 +199,13 @@ export default function ReaderHome({ navigation }) {
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists() && userSnap.data().expoPushToken) {
-                    import("../sendPushNotification").then(({ sendPushNotification }) => {
-                        sendPushNotification(
-                            userSnap.data().expoPushToken,
-                            "❌ Reader đã từ chối yêu cầu",
-                            `Reader ${nickname} đã từ chối yêu cầu của bạn.\n📋 Lý do: ${rejectReason}`
-                        );
-                    });
-                } else {
+                    sendPushNotification(
+                        userSnap.data().expoPushToken,
+                        "❌ Reader đã từ chối yêu cầu",
+                        `Reader ${nickname} đã từ chối yêu cầu của bạn.\n📋 Lý do: ${rejectReason}`
+                    );
+                }
+                else {
                     console.log("⚠️ Không tìm thấy expoPushToken của user");
                 }
             } catch (pushError) {
