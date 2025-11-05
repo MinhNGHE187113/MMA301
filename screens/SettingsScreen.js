@@ -106,6 +106,7 @@ export default function SettingsScreen({ navigation }) {
     };
 
     return (
+        //setting display
         <View style={{ flex: 1, backgroundColor: "black" }}>
             <BackgroundWrapper>
                 <SafeAreaView style={styles.safeArea}>
@@ -115,11 +116,11 @@ export default function SettingsScreen({ navigation }) {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.scrollContainer}
                     >
-                        <Text style={styles.header}>⚙️ Cài đặt</Text>
+                        <Text style={styles.header}>Cài đặt</Text>
 
                         <View style={styles.card}>
                             <TouchableOpacity style={styles.item}>
-                                <Text style={styles.text}>🔔 Thông báo</Text>
+                                <Text style={styles.text}>Thông báo</Text>
                                 <Switch
                                     trackColor={{ false: "#555", true: "#4B9EFF" }}
                                     thumbColor={isEnabled ? "#FFD93D" : "#f4f3f4"}
@@ -129,19 +130,19 @@ export default function SettingsScreen({ navigation }) {
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.item} onPress={shareApp}>
-                                <Text style={styles.text}>📩 Chia sẻ ứng dụng</Text>
+                                <Text style={styles.text}>Chia sẻ ứng dụng</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.item} onPress={rateUs}>
-                                <Text style={styles.text}>⭐ Đánh giá ứng dụng</Text>
+                                <Text style={styles.text}>Đánh giá ứng dụng</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.item} onPress={() => setModalVisible(true)}>
-                                <Text style={styles.text}>💬 Gửi nhận xét</Text>
+                                <Text style={styles.text}>Gửi nhận xét</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.item} onPress={openPrivacyPolicy}>
-                                <Text style={styles.text}>🛡️ Chính sách bảo mật</Text>
+                                <Text style={styles.text}>Chính sách bảo mật</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -152,14 +153,14 @@ export default function SettingsScreen({ navigation }) {
                 </SafeAreaView>
             </BackgroundWrapper>
 
-            {/* 📨 Modal nhận xét */}
+            {/* Modal nhận xét */}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <KeyboardAvoidingView
                     style={styles.modalContainer}
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                 >
                     <View style={styles.modalBox}>
-                        <Text style={styles.modalTitle}>💬 Gửi nhận xét</Text>
+                        <Text style={styles.modalTitle}>Gửi nhận xét</Text>
 
                         <TextInput
                             style={styles.input}
