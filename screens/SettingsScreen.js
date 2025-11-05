@@ -106,6 +106,7 @@ export default function SettingsScreen({ navigation }) {
     };
 
     return (
+        //setting display
         <View style={{ flex: 1, backgroundColor: "black" }}>
             <BackgroundWrapper>
                 <SafeAreaView style={styles.safeArea}>
