@@ -20,7 +20,7 @@ export default function AdminDashboard({ navigation }) {
     const [pendingReaders, setPendingReaders] = useState([]);
     const [feedbacks, setFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState("readers"); // "readers" hoặc "feedbacks"
+    const [viewMode, setViewMode] = useState("readers");
     const [rejectModal, setRejectModal] = useState(false);
     const [selectedReader, setSelectedReader] = useState(null);
     const [rejectReason, setRejectReason] = useState("");
@@ -41,7 +41,7 @@ export default function AdminDashboard({ navigation }) {
         }
     };
 
-    // 🔁 Lắng nghe phản hồi người dùng realtime
+    // Lắng nghe phản hồi người dùng realtime
     useEffect(() => {
         const unsub = onSnapshot(collection(db, "feedbacks"), (snap) => {
             const fbData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -54,7 +54,7 @@ export default function AdminDashboard({ navigation }) {
         fetchReaders();
     }, []);
 
-    // ✅ Duyệt reader
+    // Duyệt reader
     const approveReader = async (id) => {
         try {
             await updateDoc(doc(db, "readers", id), {
@@ -69,7 +69,7 @@ export default function AdminDashboard({ navigation }) {
         }
     };
 
-    // ❌ Từ chối reader
+    // Từ chối reader
     const rejectReader = async () => {
         if (!rejectReason.trim()) {
             Alert.alert("⚠️ Thiếu lý do", "Vui lòng nhập lý do từ chối!");
@@ -91,7 +91,7 @@ export default function AdminDashboard({ navigation }) {
         }
     };
 
-    // 🚪 Đăng xuất
+    // Đăng xuất
     const handleLogout = async () => {
         Alert.alert("Đăng xuất", "Bạn có chắc muốn đăng xuất?", [
             { text: "Hủy" },
@@ -109,7 +109,7 @@ export default function AdminDashboard({ navigation }) {
     return (
         <BackgroundWrapper>
             <View style={styles.overlay}>
-                {/* 🟣 Header */}
+                {/*Header */}
                 <View style={styles.header}>
                     <Text style={styles.title}>👑 Admin Dashboard</Text>
                     <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -117,7 +117,7 @@ export default function AdminDashboard({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* 🔁 Tabs */}
+                {/*Tabs */}
                 <View style={styles.tabRow}>
                     <TouchableOpacity
                         style={[styles.tab, viewMode === "readers" && styles.activeTab]}
@@ -134,7 +134,7 @@ export default function AdminDashboard({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* 📦 Nội dung hiển thị */}
+                {/*Nội dung hiển thị */}
                 {viewMode === "readers" ? (
                     loading ? (
                         <ActivityIndicator size="large" color="#E0AAFF" style={{ marginTop: 40 }} />
@@ -199,7 +199,7 @@ export default function AdminDashboard({ navigation }) {
                     />
                 )}
 
-                {/* 🟥 Modal từ chối */}
+                {/*Modal từ chối */}
                 <Modal visible={rejectModal} transparent animationType="fade">
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalBox}>
